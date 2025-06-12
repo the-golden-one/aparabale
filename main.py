@@ -2,7 +2,32 @@
 from balethon import Client
 from balethon.conditions import private
 from balethon.objects import InlineKeyboard
+import sqlite3
+from pathlib import Path
+import os
 
+
+#Database Setup:
+db_name = "users.db"
+db_path = os.path.abspath(db_name)
+conn = sqlite3.connect(db_path)
+cursor = conn.cursor()
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS users (
+    user_id INTEGER PRIMARY KEY,
+    whereis TEXT,
+    baleid TEXT,
+    aparid TEXT,
+    aparpass TEXT,
+    chansubj TEXT,
+    chanlink TEXT
+)
+""")
+print(db_path)
+conn.commit()
+conn.close()
+
+#-----------------------------------#
 bot = Client("180320511:serDAOFxWsW8Gwncu18rHy8BXUsrf7NQjO258EnB")
 
 
@@ -27,7 +52,9 @@ welcome_inline = InlineKeyboard(
                         [("تنظیم کانال","setc")],
                         [("تنظیمات بارگذاری", "settings")],
                         [("راهنما","help")])
-
+#---------------------------------------#
+setchannel= ''' نام کانال خود را وارد کنید. این ربات باید حتما در کانال مورد نظر ادمین باشد.
+'''
 
 
 #Handlers::
@@ -35,7 +62,15 @@ welcome_inline = InlineKeyboard(
 @bot.on_command(private,name="start")
 async def start(* , message):
     await message.reply(welcome, welcome_inline)
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+    cursor.execute("""
+                   INSERT INTO users (baleid)
+                   VALUES (?)
+                   """, (message.author.id,))
 
+    conn.commit()
+    conn.close()
 
 @bot.on_callback_query()
 async def comhelp(callback_query):
@@ -45,5 +80,8 @@ async def comhelp(callback_query):
     if callback_query.data == "home":
         await bot.edit_message_text(callback_query.message.chat.id, callback_query.message.id,welcome,welcome_inline)
 
+
+    if callback_query.data == "setc":
+        await bot.edit_message_text(callback_query.message.chat.id, callback_query.message.id,setchannel)
 
 bot.run()
