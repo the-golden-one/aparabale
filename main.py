@@ -30,7 +30,7 @@ welcome_inline = InlineKeyboard(
 
 
 
-#Handlers:
+#Handlers::
 
 @bot.on_command(private,name="start")
 async def start(* , message):
